@@ -93,8 +93,9 @@
                 				$('#workList').listview("refresh");
 					}
                                 }, function (err) {
+					alert(JSON.stringify(err));
 					if(err.message == "HTTP request failed"){
-	                                        alert(JSON.stringify("Please Check the Internet Connection"));
+	                                        alert("Please Check the Internet Connection");
 					}
 
                                 });
