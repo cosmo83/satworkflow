@@ -18,6 +18,7 @@
                         $('#username').val(localStorage.username);
                         $('#password').val(localStorage.password);
 			$( "#tabs" ).tabs({ active: 0 });
+			$('#pruser').html(localStorage.username);
 			getData();
                 });
 
@@ -49,7 +50,7 @@
                                 storage.setItem("zp1item",name);
                                 storage.setItem("scheme_id",scheme_id);
                                 storage.setItem("scheme_agency_id",scheme_agency_id);
-                                $.mobile.changePage( "zp1details.html", { transition: "slideup", changeHash: false });
+                                $.mobile.changePage( "zp1details.html", { transition: "fade", changeHash: false });
                 }
 
 
@@ -93,7 +94,6 @@
                 				$('#workList').listview("refresh");
 					}
                                 }, function (err) {
-					alert(JSON.stringify(err));
 					if(err.message == "HTTP request failed"){
 	                                        alert("Please Check the Internet Connection");
 					}
@@ -106,7 +106,7 @@
 <body>
 	<div data-role="page" data-theme="a" id="main-page">
 		<div data-role="header" data-position="inline">
-			<h1>WorkFlow App</h1>
+			<h1>Welcome <span id="pruser"></span></h1>
 			<a href="#settings" data-icon="gear" class="ui-btn-right ui-btn-bottom">Settings </a>
 		</div>
 		<div data-role="content">
