@@ -2,7 +2,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title>jQuery Mobile: Theme Download</title>
+	<title>SAT Workflow</title>
 	<link rel="stylesheet" href="themes/satworkflow.min.css" /> 
 	<link rel="stylesheet" href="themes/jquery.mobile.icons.min.css" />
 	<link rel="stylesheet" href="themes/jquery.mobile.structure-1.4.2.min.css" />
@@ -11,16 +11,22 @@
 	<script type="text/javascript">
 
 
-               $(document).on( "pageinit", "#main-page", function() {
+               $(document).on( "pagecreate", "#main-page", function() {
                         var storage=sessionStorage;
                         $.support.cors = true;
                         $.mobile.allowCrossDomainPages = true;
                         $('#username').val(localStorage.username);
                         $('#password').val(localStorage.password);
+			$( "#tabs" ).tabs({ active: 0 });
+			getData();
+                });
 
-                                        });
-
-
+		$(document).on( "tabsactivate", function( event, ui ) {
+			var active = $( "#tabs" ).tabs( "option", "active" );
+			if(active == 0) {
+				getData();
+			}
+		} );
 
                 function saveUser(){
                                 var storage=localStorage;
@@ -36,6 +42,62 @@
                 function getPass(){
                                 var storage = localStorage;
                                 return storage.getItem("password");
+                        }
+
+		function sayHi(name,scheme_id,scheme_agency_id){
+                                var storage = sessionStorage;
+                                storage.setItem("zp1item",name);
+                                storage.setItem("scheme_id",scheme_id);
+                                storage.setItem("scheme_agency_id",scheme_agency_id);
+                                $.mobile.changePage( "zp1details.html", { transition: "slideup", changeHash: false });
+                }
+
+
+		function getData(){
+				$('#workList').empty();
+                                $("#footertext").html("Checking");
+                                OData.defaultHttpClient.enableJsonpCallback = false;
+                                var myurl="http://nplhost.sat-infotech.com:8042/sap/opu/sdata/sap/wfdecisiontaskprocessing/";
+                                var storage = localStorage;
+                                var strUsername=storage.getItem("username");
+                                var strPassword=storage.getItem("password");
+                                var sUrl = myurl+"WorkflowTaskCollection";
+                                var oHeaders = {};
+                                oHeaders['Authorization'] = "Basic " + btoa(strUsername + ":" + strPassword);
+                                var request = {
+                                        headers : oHeaders, // object that contains HTTP headers as name value pairs
+                                        requestUri : sUrl, // OData endpoint URI
+                                        method : "GET"
+                                };
+                                workItems=[];
+                                OData.read(request,
+                                function (data) {
+                                        var j=0;
+                                        for (var i=0;i<data.results.length;i++){
+                                                var value = data.results[i].value;
+                                                var scheme_id = data.results[i].scheme_id;
+                                                var scheme_agency_id = data.results[i].scheme_agency_id;
+                                                var subject = data.results[i].subject;
+                                                var task_name = data.results[i].task_name
+						var created_by = data.results[i].created_by
+                                                if(subject.indexOf("PO RAISED") < 0){
+							j=j+1;
+							$('#workList').append('<li><a  onClick="sayHi(\''+value+'\',\''+scheme_id+'\',\''+scheme_agency_id+'\')"><h3>Work Item: '+value+'</h3><p>'+subject+'</p><p>'+task_name+'</p><p><p>Created By : '+created_by+'</p></a></li>');
+                                                }
+                                        }
+					if(j==0){
+						$('#noitemstext').html('<p>No Worklist Items</p>');
+					}
+					else{
+						$('#noitemstext').html('<p>&nbsp;</p>');
+                				$('#workList').listview("refresh");
+					}
+                                }, function (err) {
+					if(err.message == "HTTP request failed"){
+	                                        alert(JSON.stringify("Please Check the Internet Connection"));
+					}
+
+                                });
                         }
         </script>
 
@@ -56,7 +118,9 @@
 			</ul>
 		</div>
 		<div id="po-approval" class="ui-body-d ui-content">
-		    <h1>First tab contents</h1>
+                	<span id="noitemstext">&nbsp;</span>
+		        <div data-role="listview" data-inset="true" id="workList" data-filter-reveal="false">
+                	</div>
 	 	</div>
 		<div id="pr-approval">
 			<h1>Work Under Progress</h1>
@@ -88,6 +152,8 @@
 
 	</div> <!--page-->
 	<script type="text/javascript" src="phonegap.js"></script>
-
+	<script type="text/javascript" src="js/datajs-1.1.1.js"></script>
+	<script>
+	</script>
 </body>
 </html>
